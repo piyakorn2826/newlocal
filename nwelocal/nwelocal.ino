@@ -453,6 +453,9 @@ void loop() {
 
           rdm6300.update();
           customKey1 = NO_KEY;
+          while (!rdm6300.update()){
+            break;
+          }
 
         }
         // unconfrimed
