@@ -1,4 +1,4 @@
-// v. aj.jed 6 sep 2021
+// v. aj.jed 4 sep 2021
 #include <Wire.h>
 #include <SH1106Wire.h>   // legacy: #include "SH1106.h"
 #include <Keypad_I2C.h>
@@ -256,7 +256,7 @@ void setup() {
     dw_font_goto(&myfont, TAB0, LINE2);
     dw_font_print(&myfont, "-----------------------------------------");
     dw_font_goto(&myfont, TAB0, LINE3);
-    dw_font_print(&myfont, "กำลังเชื่อมต่อ WiFi");
+    dw_font_print(&myfont, "กำลังเชื่อมต่อ WiFi หรือกด A");
     ssid = readssid.c_str();
     password = readpassword.c_str();
     dw_font_goto(&myfont, TAB40, LINE4);
@@ -266,7 +266,7 @@ void setup() {
     ssid = ""; password = "";
     con = 0;
   }
-  Serial.println("v.1.4 local");
+  Serial.println("v.1.4");
 }
 void loop() {
   // show Wifi options
@@ -314,10 +314,10 @@ void loop() {
           setssid = l;
           ssid = l.c_str();
           display.clear();
-          display.drawString(0, LINE1, "SSID:");
-          display.drawString(30, LINE1, ssid);
+          display.drawString(0, 0, "SSID:");
+          display.drawString(30, 0, ssid);
 
-          display.drawString(0, LINE2, "Pass: ");
+          display.drawString(0, 10, "Pass: ");
           dw_font_goto(&myfont, 5, LINE4);
           dw_font_print(&myfont, "* ยืนยัน              ย้อนกลับ #");
           display.display();
@@ -341,6 +341,17 @@ void loop() {
             password = pass.c_str();
             keystate = 1; b = 0; a = 32;
             customKey = NO_KEY;
+            display.drawString(0, LINE2, "Wait....");
+            display.display();
+/*
+          dw_font_goto(&myfont, 0, LINE4);
+          dw_font_print(&myfont, "               ");
+          display.display();
+
+          dw_font_goto(&myfont, 50, LINE4);
+          dw_font_print(&myfont, "------------------------");
+          display.display();
+*/
           }
           else if (customKey == '#') {
             set = 0; b = 0; key = 0; a = 32;
@@ -350,12 +361,12 @@ void loop() {
           }
           if (keystate == 1) {
             keystate = 0;
-            display.drawString(24, LINE3, "Connecting WiFi.");
-            dw_font_goto(&myfont, 40, LINE4);
-            sprintf( buff , "SSID: %s" , ssid);
-            dw_font_print(&myfont, buff);
+            //display.drawString(24, LINE3, "Connecting WiFi.");
+            //dw_font_goto(&myfont, 40, LINE4);
+            //sprintf( buff , "SSID: %s" , ssid);
+            //dw_font_print(&myfont, buff);
             //display.drawString(24, 55, "Just the moment.");
-            display.display();
+            //display.display();
             WiFi.begin(ssid, password);
             EEPROM.put(addssid, setssid);
             EEPROM.put(addpass, pass);
@@ -367,7 +378,8 @@ void loop() {
                 key = 0; con = 1; set = 0; b = 0;
                 prev_time = millis();
                 ssid = "";  password = ""; pass = "";
-                display.drawString(24, LINE3, "WiFi Not connected");
+                
+                display.drawString(30, LINE2, "WiFi Not connect");
                 display.display();
                 delay(5000);
                 display.clear();
@@ -376,7 +388,9 @@ void loop() {
             }
 
             if (key == 1) {
-              display.drawString(24, LINE3, "WiFi connected");
+              display.drawString(34, LINE2, "        ");
+                display.display();
+              display.drawString(30, LINE2, "WiFi connected");
               display.display();
               key = 0, con = 0, set = 1;
               //ssid = "";  password = ""; pass = "";
@@ -511,8 +525,8 @@ void loop() {
           counter_ = 0;
 
           display.clear();
-          dw_font_goto(&myfont, 15, 36);
-          dw_font_print(&myfont, "โปรดเลือก A เพื่อเลือก WIFI");
+          dw_font_goto(&myfont, 5, 36);
+          dw_font_print(&myfont, "โปรดเลือก A เพื่อเลือก WiFi");
           display.display();
 
 
@@ -751,6 +765,7 @@ void loop() {
           EEPROM.get(addeecount, readcount);
           EEPROM.get(addeeqty, readqty);
           //EEPROM.get(addmac, readmachine);
+          //sprintf( buff , "https://bunnam.com/projects/majorette_pp/update/count.php?id_task=%s&id_mc=%s&no_send=%d&no_pulse1=%d&no_pulse2=0&no_pulse3=0", dst.id_task, readmachine.c_str() , readcount, readqty);
           sprintf( buff , "http://192.168.40.1/SB_Admin_Pro/update/count.php?id_task=%s&id_mc=%s&no_send=%d&no_pulse1=%d&no_pulse2=0&no_pulse3=0", dst.id_task, readmachine.c_str() , readcount, readqty);
           Serial.println( buff );
           msg = httpPOSTRequest(buff, "");
@@ -856,6 +871,7 @@ void loop() {
             // stop
             if (customKey1 == '#') {
               //EEPROM.get(addmac, readmachine);
+              //sprintf( buff , "https://bunnam.com/projects/majorette_pp/update/count.php?id_task=%s&id_mc=%s&no_send=%d&no_pulse1=%d&no_pulse2=0&no_pulse3=0", dst.id_task, readmachine.c_str() , readcount, qty);
               sprintf( buff , "http://192.168.40.1/SB_Admin_Pro/update/count.php?id_task=%s&id_mc=%s&no_send=%d&no_pulse1=%d&no_pulse2=0&no_pulse3=0", dst.id_task, readmachine.c_str() , readcount, qty);
               //Serial.println( buff );
               msg = httpPOSTRequest(buff, "");
@@ -1031,10 +1047,11 @@ void loop() {
             display.clear();
             display.resetDisplay();
             //------------------------------------------------------------------------- เพิ่ม
-            dw_font_goto(&myfont, 15, LINE3);
+            dw_font_goto(&myfont, 30, LINE3);
             dw_font_print(&myfont, "หยุดพักเบรค");
             display.display();
             delay(2000);
+            display.clear();
             rdm6300.update();
             while (!rdm6300.update()) {
               rdm6300.update();
@@ -1342,11 +1359,13 @@ int query_Touch_GetMethod( const char * id_mc , const char * id_rfid , employ_to
 {
   String msg = " ";
   char buff[300];
-  
+
   // 6 sep 2021
   //sprintf( buff , "http://192.168.40.1/SB_Admin_Pro/update/touch_v3.php?id_mc=%s&id_rfid=%s", id_mc, id_rfid );
   sprintf( buff , "http://192.168.40.1/SB_Admin_Pro/update/touch.php?id_mc=%s&id_rfid=%s", id_mc, id_rfid );
-
+  //sprintf( buff , "http://bunnam.com/projects/majorette_pp/update/touch_v3.php?id_mc=%s&id_rfid=%s", id_mc, id_rfid );
+  //sprintf( buff , "http://bunnam.com/projects/majorette_pp/update/touch.php?id_mc=%s&id_rfid=%s", id_mc, id_rfid );
+  
   Serial.println(id_mc);
   msg = httpGETRequest(buff);
 
@@ -1402,6 +1421,7 @@ int query_Continue_GetMethod( const char * id_mc , const char * id_rfid  )
 {
   String msg = " ";
   char buff[300];
+  //sprintf( buff , "http://bunnam.com/projects/majorette_pp/update/continue_v2.php?id_mc=%s&id_rfid=%s" , id_mc , id_rfid);
   sprintf( buff , "http://192.168.40.1/SB_Admin_Pro/update/continue_v2.php?id_mc=%s&id_rfid=%s" , id_mc , id_rfid);
   Serial.println(buff);
   msg = httpGETRequest(buff);
@@ -1441,6 +1461,7 @@ int query_Break_GetMethod( char * id_rfid, char * id_job , char * operation , ch
 {
   String msg = " ";
   char buff[300];
+  //sprintf( buff , "http://bunnam.com/projects/majorette_pp/update/break_v2.php?id_rfid=%s&id_job=%s&operation=%s&id_mc=%s&break_code=%s" , id_rfid, id_job, operation, id_mc, break_code );
   sprintf( buff , "http://192.168.40.1/SB_Admin_Pro/update/break_v2.php?id_rfid=%s&id_job=%s&operation=%s&id_mc=%s&break_code=%s" , id_rfid, id_job, operation, id_mc, break_code );
   Serial.println(buff);
   msg = httpGETRequest(buff);
@@ -1483,6 +1504,7 @@ int query_Quit_GetMethod( char* id_rfid, char * id_job , char * operation , char
 {
   String msg = " ";
   char buff[300];
+  //sprintf( buff , "http://bunnam.com/projects/majorette_pp/update/quit_v2.php?id_rfid=%s&id_job=%s&operation=%s&id_mc=%s&no_send=%s&no_pulse1=%s&no_pulse2=%s&no_pulse3=%s" , id_rfid, id_job, operation, id_machine, no_send, no_pulse1, no_pulse2, no_pulse3 );
   sprintf( buff , "http://192.168.40.1/SB_Admin_Pro/update/quit_v2.php?id_rfid=%s&id_job=%s&operation=%s&id_mc=%s&no_send=%s&no_pulse1=%s&no_pulse2=%s&no_pulse3=%s" , id_rfid, id_job, operation, id_machine, no_send, no_pulse1, no_pulse2, no_pulse3 );
   Serial.println(buff);
   msg = httpGETRequest(buff);
@@ -1521,6 +1543,8 @@ int query_Downtime_GetMethod(  char * id_job , char * operation , char * id_mach
 {
   String msg = " ";
   char buff[300];
+  //sprintf( buff , "http://bunnam.com/projects/majorette_pp/update/downtime.php?id_job=%s&operation=%s&id_mc=%s&code_downtime=%s" , id_job, operation, id_machine, code_downtime );
+  
   sprintf( buff , "http://192.168.40.1/SB_Admin_Pro/update/downtime.php?id_job=%s&operation=%s&id_mc=%s&code_downtime=%s" , id_job, operation, id_machine, code_downtime );
   Serial.println(buff);
   msg = httpGETRequest(buff);
@@ -1562,7 +1586,9 @@ int query_Quit_DT_GetMethod( char * id_rfid, char * id_job , char * operation , 
 {
   String msg = " ";
   char buff[300];
+  //sprintf( buff , "http://bunnam.com/projects/majorette_pp/update/quit_dt.php?id_rfid=%s&id_job=%s&operation=%s&id_mc=%s" , id_rfid, id_job, operation, id_mc );
   sprintf( buff , "http://192.168.40.1/SB_Admin_Pro/update/quit_dt.php?id_rfid=%s&id_job=%s&operation=%s&id_mc=%s" , id_rfid, id_job, operation, id_mc );
+
   Serial.println(buff);
   msg = httpGETRequest(buff);
 
